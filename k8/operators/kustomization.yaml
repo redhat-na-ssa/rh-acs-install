@@ -3,4 +3,5 @@ kind: Kustomization
 
 resources:
   - acs.yaml
+  - compliance-operator.yaml
 
