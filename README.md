@@ -68,13 +68,14 @@ oc get pods -n stackrox
 watch oc get pvc,deploy,svc,route
 ```
 
+`scanner-db` will take the longest to initialize (~5+ minutes)
+
 The Central component will take several minutes to fully deploy. Once all pods are running, you can access the Central UI through the route that was created.
 
 To check the status of the Central instance via the CLI
 
 ```bash
-oc get central stackrox-central-services \ 
-  -o jsonpath-as-json='{.status.conditions}'
+oc get central stackrox-central-services -o jsonpath-as-json='{.status.conditions}'
 ```
 
 Output:
@@ -146,6 +147,44 @@ oc scale deploy scanner-v4-matcher --replicas=1
 # Optional: if still tight, you can even scale scanner dbs a bit
 # but usually just replica cuts are enough.
 ```
+
+## Configuration Steps
+
+At this point we have a Central cluster, but no secured clusters being managed. Let's start by importing the central cluster first, then import a second cluster.
+
+From the ACS console, under `Platform Configuration`->`Clusters`, click the `Init bundles` button.  
+  
+From the Cluster init bundles page, click `Create bundle`.  
+   
+Provide a name (ex. `install-import`), select `OpenShift` and click `Download`
+
+This will download a file to your local system called `install-import-Operator-secrets-cluster-init-bundle.yaml`
+
+Do not close the window.
+
+From the command line:
+
+```bash
+mv ~/Downloads/install-import-Operator-secrets-cluster-init-bundle.yaml .
+
+oc apply -f install-import-Operator-secrets-cluster-init-bundle.yaml 
+```
+
+While logged into the central cluster, apply the following to have it added as a secured cluster.
+
+Example output
+```
+secret/collector-tls created
+secret/sensor-tls created
+secret/admission-control-tls created
+```
+
+Create add the cluster to central (this can be done with the operator)
+```bash
+oc apply -k k8/secured-cluster  
+```
+
+Eventually, the cluster will show up in ACS as `Healthy` and `Up to date with Central`
 
 ## Directory Structure
 - `k8/operators/kustomization.yaml` - Kustomize configuration for operator resources
