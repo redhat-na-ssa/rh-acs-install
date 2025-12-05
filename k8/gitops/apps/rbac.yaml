@@ -2,7 +2,7 @@ apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name: acs-rbac
-  namespace: argocd
+  namespace: openshift-gitops
   annotations:
     argocd.argoproj.io/sync-wave: "0"
   finalizers:
@@ -15,7 +15,7 @@ spec:
     path: k8/gitops/rbac
   destination:
     server: https://kubernetes.default.svc
-    namespace: argocd
+    namespace: openshift-gitops
   syncPolicy:
     automated:
       prune: true
